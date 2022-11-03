@@ -126,6 +126,7 @@ int get_number_of_digits(int number) {
     int digits = 0;
     if (number < 0) {
         number *= -1;
+        digits++;
     }
     while (number > 0) {
         number /= 10;
@@ -149,20 +150,23 @@ int* get_digits(int number, int digits) {
 Number* get_ascii_for_number(int number) {
     int digits = get_number_of_digits(number);
     int* digits_array;
-    Number* ascii_array;
+    Number* ascii_array = malloc(digits * sizeof(Number));
+    int index = 0;
     if (number < 0) {
         digits_array = get_digits(number * -1, digits);
-        ascii_array = malloc(digits * sizeof(Number) + 1);
         ascii_array[0] = minus;
-        for (int i = 1; i < digits + 1; i++) {
-            ascii_array[i] = get_ascii_for_digit(digits_array[i - 1]);
-        }
+        index = 1;
     } else {
         digits_array = get_digits(number, digits);
-        ascii_array = malloc(digits * sizeof(Number));
-        for (int i = 0; i < digits; i++) {
-            ascii_array[i] = get_ascii_for_digit(digits_array[i]);
-        }
+    }
+    for (int i = index; i < 5 - digits + index; i++) {
+        ascii_array[i] = zero;
+    }
+    for (int i = 0; i < digits; i++) {
+        ascii_array[i + 5 - digits + index] = get_ascii_for_digit(digits_array[i]);
+    }
+    if (digits == 6) {
+        ascii_array[0] = minus;
     }
     free(digits_array);
     return ascii_array;
@@ -186,14 +190,14 @@ void calculate(int number1, char operand, int number2) {
                 int result = number1 + number2;
                 int digits;
                 if (result < 0) {
-                    digits = get_number_of_digits(result) + 1;
+                    digits = 6;
                 } else {
-                    digits = get_number_of_digits(result);
+                    digits = 5;
                 }
-                if (get_number_of_digits(number1 + number2) > 5) {
+                if (get_number_of_digits(result) > digits) {
                     printf("Result is too big to display\n");
                 } else {
-                    print_number(get_ascii_for_number(number1 + number2), digits);
+                    print_number(get_ascii_for_number(result), digits);
                 }
                 break;
             }
@@ -202,14 +206,14 @@ void calculate(int number1, char operand, int number2) {
                 int result = number1 - number2;
                 int digits;
                 if (result < 0) {
-                    digits = get_number_of_digits(result) + 1;
+                    digits = 6;
                 } else {
-                    digits = get_number_of_digits(result);
+                    digits = 5;
                 }
-                if (get_number_of_digits(number1 - number2) > 5) {
+                if (get_number_of_digits(result) > digits) {
                     printf("Result is too big to display\n");
                 } else {
-                    print_number(get_ascii_for_number(number1 - number2), digits);
+                    print_number(get_ascii_for_number(result), digits);
                 }
                 break;
             }
@@ -218,14 +222,14 @@ void calculate(int number1, char operand, int number2) {
                 int result = number1 * number2;
                 int digits;
                 if (result < 0) {
-                    digits = get_number_of_digits(result) + 1;
+                    digits = 6;
                 } else {
-                    digits = get_number_of_digits(result);
+                    digits = 5;
                 }
-                if (get_number_of_digits(number1 * number2) > 5) {
+                if (get_number_of_digits(result) > digits) {
                     printf("Result is too big to display\n");
                 } else {
-                    print_number(get_ascii_for_number(number1 * number2), digits);
+                    print_number(get_ascii_for_number(result), digits);
                 }
                 break;
             }
@@ -234,14 +238,14 @@ void calculate(int number1, char operand, int number2) {
                 int result = number1 / number2;
                 int digits;
                 if (result < 0) {
-                    digits = get_number_of_digits(result) + 1;
+                    digits = 6;
                 } else {
-                    digits = get_number_of_digits(result);
+                    digits = 5;
                 }
-                if (get_number_of_digits(number1 / number2) > 5) {
+                if (get_number_of_digits(result) > digits) {
                     printf("Result is too big to display\n");
                 } else {
-                    print_number(get_ascii_for_number(number1 / number2), digits);
+                    print_number(get_ascii_for_number(result), digits);
                 }
                 break;
             }
@@ -251,11 +255,13 @@ void calculate(int number1, char operand, int number2) {
     }
 }
 
-int check_input(int number1, char operand, int number2) {
+int check_valid_input(int number1, char operand, int number2) {
     return
-        get_number_of_digits(number1) <= 5
-        && get_number_of_digits(number2) <= 5
-        && ((operand == '/' && number2 != 0) || operand != '/');
+        (number1 < 0 && get_number_of_digits(number1) <= 6) ||
+        (number2 < 0 && get_number_of_digits(number2) <= 6) ||
+        (get_number_of_digits(number1) <= 5 &&
+        get_number_of_digits(number2 <= 5) &&
+        ((operand == '/' && number2 != 0) || operand != '/'));
 }
 
 int main() {
@@ -263,7 +269,7 @@ int main() {
     char operand;
     printf("Enter a 2 numbers with an operand between them: ");
     scanf("%d %c %d", &number1, &operand, &number2);
-    while (!check_input(number1, operand, number2)) {
+    while (!check_valid_input(number1, operand, number2)) {
         printf("Number too big or division by 0, try again\n");
         printf("Enter a 2 numbers with an operand between them: ");
         scanf("%d %c %d", &number1, &operand, &number2);
